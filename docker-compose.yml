@@ -59,6 +59,11 @@ services:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+      - TRANSCRIPTION_PROVIDER=${TRANSCRIPTION_PROVIDER:-groq}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TRANSCRIPTION_MODEL=${TRANSCRIPTION_MODEL}
+      - TRANSCRIPTION_FALLBACK_PROVIDER=${TRANSCRIPTION_FALLBACK_PROVIDER}
     volumes:
       - ./ml-service:/app
     healthcheck:

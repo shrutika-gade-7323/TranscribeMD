@@ -16,7 +16,7 @@ COPY . .
 
 EXPOSE 8000
 
-# Use small Whisper model by default; set WHISPER_MODEL=medium or =large-v3 for production
-ENV WHISPER_MODEL=base
+# Cloud ASR configuration defaults
+ENV TRANSCRIPTION_PROVIDER=groq
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,6 +1,10 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+# Load environment variables (useful when running locally without Docker)
+load_dotenv()
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,13 +20,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("TranscribeMD ML Service starting...")
-    # Warm up Whisper model on startup
-    try:
-        from services.whisper_service import get_model
-        get_model()
-    except Exception as e:
-        logger.warning(f"Whisper warmup failed (will load on first request): {e}")
+    logger.info("TranscribeMD ML Service starting (using cloud ASR)...")
     yield
     logger.info("ML Service shutting down")
 
