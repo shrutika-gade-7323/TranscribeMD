@@ -1,0 +1,59 @@
+# ── TranscribeMD Git Ignore Configuration ─────────────────────────────────────
+
+# Environment secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+.yarn-integrity
+
+# Java / Spring Boot
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Python / FastAPI (ML Service)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / Editor configurations
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.classpath
+.project
+.settings/
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local database and uploads
+uploads/
+**/uploads/
+*.db
+*.log
