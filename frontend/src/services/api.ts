@@ -75,17 +75,27 @@ export const getImageUrl = (imageId: string) => `/api/v1/images/${imageId}`
 
 // Settings
 export interface ApiKeyStatus {
-  configured: boolean
-  partialKeyHint: string
-  source: 'DATABASE' | 'ENVIRONMENT'
-  updatedAt: string
+  anthropicConfigured: boolean
+  anthropicPartialKeyHint: string
+  anthropicSource: 'DATABASE' | 'ENVIRONMENT'
+  anthropicUpdatedAt: string
+
+  geminiConfigured: boolean
+  geminiPartialKeyHint: string
+  geminiSource: 'DATABASE' | 'ENVIRONMENT'
+  geminiUpdatedAt: string
+
+  activeProvider: 'gemini' | 'anthropic'
 }
 
 export const fetchApiKeyStatus = (): Promise<ApiKeyStatus> =>
   api.get<ApiKeyStatus>('/settings/anthropic-key').then(r => r.data)
 
-export const updateApiKey = (apiKey: string): Promise<ApiKeyStatus> =>
-  api.post<ApiKeyStatus>('/settings/anthropic-key', { apiKey }).then(r => r.data)
+export const updateApiKey = (apiKey: string, provider: 'gemini' | 'anthropic'): Promise<ApiKeyStatus> =>
+  api.post<ApiKeyStatus>('/settings/anthropic-key', { apiKey, provider }).then(r => r.data)
+
+export const updateProvider = (provider: 'gemini' | 'anthropic'): Promise<ApiKeyStatus> =>
+  api.post<ApiKeyStatus>('/settings/provider', { provider }).then(r => r.data)
 
 export const verifyApiKey = (
   apiKeyId: string,
@@ -97,3 +107,13 @@ export const verifyApiKey = (
     adminApiKey,
     saveAsActive,
   }).then(r => r.data)
+
+export const verifyGeminiApiKey = (
+  apiKey: string,
+  saveAsActive: boolean
+): Promise<any> =>
+  api.post('/settings/gemini-key/verify', {
+    apiKey,
+    saveAsActive: saveAsActive ? 'true' : 'false',
+  }).then(r => r.data)
+

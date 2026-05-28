@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateApiKeyRequest {
+    private String provider; // "gemini" or "anthropic"
     private String apiKey;
 }

@@ -44,6 +44,11 @@ spring:
   ai:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:your-api-key-here}
+    gemini:
+      api-key: ${GEMINI_API_KEY:your-api-key-here}
+    llm:
+      provider: ${LLM_PROVIDER:gemini}
+
 
 server:
   port: 8080

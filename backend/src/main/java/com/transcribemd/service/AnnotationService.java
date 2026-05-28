@@ -56,48 +56,88 @@ public class AnnotationService {
         log.info("Annotating transcript ({} chars)", rawTranscript.length());
 
         String activeKey = settingsService.getActiveApiKey();
+        String provider = settingsService.getActiveProvider();
+
         if (activeKey == null || activeKey.isBlank() || activeKey.startsWith("your-")) {
-            log.warn("No Anthropic API key configured — using fallback annotation");
-            return new AnnotatedTranscript(buildFallbackAnnotation(rawTranscript), false, "No API key");
+            log.warn("No API key configured for {} — using fallback annotation", provider);
+            return new AnnotatedTranscript(buildFallbackAnnotation(rawTranscript), false, "No API key configured for " + provider);
         }
 
         try {
-            Map<String, Object> requestBody = Map.of(
-                    "model", MODEL,
-                    "max_tokens", 8000,
-                    "system", SYSTEM_PROMPT,
-                    "messages", List.of(
-                            Map.of("role", "user",
-                                    "content", "Annotate this medical dictation:\n\n" + rawTranscript)
-                    )
-            );
+            String content;
+            if ("anthropic".equals(provider)) {
+                Map<String, Object> requestBody = Map.of(
+                        "model", MODEL,
+                        "max_tokens", 8000,
+                        "system", SYSTEM_PROMPT,
+                        "messages", List.of(
+                                Map.of("role", "user",
+                                        "content", "Annotate this medical dictation:\n\n" + rawTranscript)
+                        )
+                );
 
-            String response = webClientBuilder.build()
-                    .post()
-                    .uri(ANTHROPIC_API_URL + "/v1/messages")
-                    .header("x-api-key", activeKey)
-                    .header("anthropic-version", "2023-06-01")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(60))
-                    .block();
+                String response = webClientBuilder.build()
+                        .post()
+                        .uri(ANTHROPIC_API_URL + "/v1/messages")
+                        .header("x-api-key", activeKey)
+                        .header("anthropic-version", "2023-06-01")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .timeout(Duration.ofSeconds(60))
+                        .block();
 
-            JsonNode responseJson = objectMapper.readTree(response);
-            String content = responseJson
-                    .path("content")
-                    .get(0)
-                    .path("text")
-                    .asText();
+                JsonNode responseJson = objectMapper.readTree(response);
+                content = responseJson
+                        .path("content")
+                        .get(0)
+                        .path("text")
+                        .asText();
+            } else {
+                // Google Gemini API integration
+                Map<String, Object> contentsPart = Map.of("text", "Annotate this medical dictation:\n\n" + rawTranscript);
+                Map<String, Object> contentsItem = Map.of("parts", List.of(contentsPart));
+                
+                Map<String, Object> systemPart = Map.of("text", SYSTEM_PROMPT);
+                Map<String, Object> systemInstruction = Map.of("parts", List.of(systemPart));
+                
+                Map<String, Object> generationConfig = Map.of("responseMimeType", "application/json");
+
+                Map<String, Object> requestBody = Map.of(
+                        "contents", List.of(contentsItem),
+                        "systemInstruction", systemInstruction,
+                        "generationConfig", generationConfig
+                );
+
+                String response = webClientBuilder.build()
+                        .post()
+                        .uri("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + activeKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .timeout(Duration.ofSeconds(60))
+                        .block();
+
+                JsonNode responseJson = objectMapper.readTree(response);
+                content = responseJson
+                        .path("candidates")
+                        .get(0)
+                        .path("content")
+                        .path("parts")
+                        .get(0)
+                        .path("text")
+                        .asText();
+            }
 
             String cleanJson = extractJson(content);
             objectMapper.readTree(cleanJson); // validate
-            log.info("Annotation successful");
+            log.info("Annotation successful using {}", provider);
             return new AnnotatedTranscript(cleanJson, true, null);
 
         } catch (Exception e) {
-            log.error("Annotation failed: {}", e.getMessage());
+            log.error("Annotation failed using {}: {}", provider, e.getMessage());
             return new AnnotatedTranscript(buildFallbackAnnotation(rawTranscript), false, e.getMessage());
         }
     }

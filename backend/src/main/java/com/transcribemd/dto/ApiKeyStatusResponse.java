@@ -12,8 +12,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiKeyStatusResponse {
-    private boolean configured;
-    private String partialKeyHint;
-    private String source; // "DATABASE" or "ENVIRONMENT"
-    private LocalDateTime updatedAt;
+    private boolean anthropicConfigured;
+    private String anthropicPartialKeyHint;
+    private String anthropicSource;
+    private LocalDateTime anthropicUpdatedAt;
+
+    private boolean geminiConfigured;
+    private String geminiPartialKeyHint;
+    private String geminiSource;
+    private LocalDateTime geminiUpdatedAt;
+
+    private String activeProvider; // "gemini" or "anthropic"
 }
